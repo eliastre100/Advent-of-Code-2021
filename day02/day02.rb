@@ -20,19 +20,21 @@ class InputReader
 end
 
 class Submarine
-  attr_reader :depth, :position
+  attr_reader :depth, :position, :aim
 
   def initialize
     @depth = 0
     @position = 0
+    @aim = 0
   end
 
   def apply_forward(value)
     @position += value
+    @depth += (@aim * value)
   end
 
   def apply_depth(value)
-    @depth += value
+    @aim += value
   end
 end
 
