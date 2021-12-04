@@ -15,7 +15,7 @@ class InputReader
     end
 
     def read_string(file)
-      File.readlines(file)
+      File.readlines(file).map(&:chop)
     end
   end
 end
