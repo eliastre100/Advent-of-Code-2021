@@ -71,3 +71,18 @@ winner = bingos.detect(&:won?)
 
 puts "Last value drawn #{last_usefull_draw.inspect} and the winner have #{winner.remaining_score} (answer = #{last_usefull_draw * winner.remaining_score})"
 puts winner
+
+remaining_boards = bingos
+
+draws.each do |draw|
+  remaining_boards.each { |bingo| bingo.apply(draw) }
+  remaining_boards = remaining_boards.reject(&:won?)
+  break if remaining_boards.one?
+end
+
+last_looser_draw = draws.detect do |draw|
+  remaining_boards.first.apply(draw)
+  remaining_boards.first.won?
+end
+
+puts "Last value drawn to looser's completion #{last_looser_draw.inspect} and the looser have #{remaining_boards.last.remaining_score} (answer = #{last_looser_draw * remaining_boards.last.remaining_score})"
