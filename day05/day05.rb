@@ -23,12 +23,20 @@ class Map
       (boundaries.min..boundaries.max).each do |x|
         add_vent_possition({ x: x, y: vector[:start][:y] })
       end
-    end
-
-    if vector[:start][:x] == vector[:end][:x]
+    elsif vector[:start][:x] == vector[:end][:x]
       boundaries = [vector[:start][:y], vector[:end][:y]]
       (boundaries.min..boundaries.max).each do |y|
         add_vent_possition({ x: vector[:start][:x], y: y })
+      end
+    else
+      (vector[:start][:x]..vector[:end][:x]).each.with_index do |x, idx|
+        direction = (vector[:end][:y] - vector[:start][:y]) / (vector[:end][:y] - vector[:start][:y]).abs
+        add_vent_possition({ x: x, y: vector[:start][:y] + idx * direction })
+      end
+
+      (vector[:end][:x]..vector[:start][:x]).each.with_index do |x, idx|
+        direction = (vector[:start][:y] - vector[:end][:y]) / (vector[:start][:y] - vector[:end][:y]).abs
+        add_vent_possition({ x: x, y: vector[:end][:y] + idx * direction })
       end
     end
   end
@@ -67,9 +75,7 @@ input.each do |line|
     vectors.split(',').map(&:to_i)
   end.map { |point| { x: point.last, y: point.first } }
 
-  if points.first[:x] == points.last[:x] || points.first[:y] == points.last[:y]
-    map.add_vent_vector({ start: points.first, end: points.last })
-  end
+  map.add_vent_vector({ start: points.first, end: points.last })
 end
 
 
