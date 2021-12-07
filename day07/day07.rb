@@ -21,12 +21,11 @@ distance = input.map { |current_pos| (current_pos - best_pos).abs }.inject(&:+).
 
 puts "Step 1: #{best_pos} best pos cost #{distance}"
 
-best_pos = (input.inject{ |sum, el| sum + el }.to_f / input.size)
-distance = input.map { |current_pos| (current_pos - best_pos).round.abs.to_i.downto(0).inject(:+) }.compact.inject(&:+)
-
 shortest = (input.min..input.max).map do |try_position|
-  [try_position, input.map { |current_pos| (current_pos - try_position).round.abs.to_i.downto(0).inject(:+) }.compact.inject(&:+)]
+  [try_position, input.map { |current_pos| (current_pos - try_position).round.abs.to_i.downto(0).sum }.compact.sum]
 end.min_by { |try| try[1] }
 
-ap shortest
+best_pos = shortest[0]
+distance = shortest[1]
+
 puts "Step 2: #{best_pos} best pos cost #{distance}"
