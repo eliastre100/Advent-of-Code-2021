@@ -11,7 +11,7 @@ end
 instructions = InputReader.read_string(ARGV[0])
 
 def illegal_token(tokens, state)
-  return nil if tokens.size.zero?
+  return { illegal: false, state: state, error: '' } if tokens.size.zero?
 
   token_pairs = {
     '(' => ')',
@@ -23,7 +23,7 @@ def illegal_token(tokens, state)
   if token_pairs.keys.include?(tokens[0])
     state << tokens[0]
   else
-    return tokens[0] unless token_pairs[state.last].eql?(tokens[0])
+    return { illegal: true, state: state, error: tokens[0] } unless token_pairs[state.last].eql?(tokens[0])
 
     state.pop
   end
@@ -32,7 +32,6 @@ def illegal_token(tokens, state)
 end
 
 invalid_tokens = instructions.map do |instruction|
-  puts instruction
   illegal_token(instruction.split(''), [])
 end.compact
 
@@ -40,9 +39,25 @@ error_prices = {
   ')' => 3,
   ']' => 57,
   '}' => 1197,
-  '>' => 25137
+  '>' => 25137,
+  '' => 0
 }
 
-ap (invalid_tokens.map do |invalid_token|
-  error_prices[invalid_token]
+ap (invalid_tokens.select { |instruction| instruction[:illegal] }.map do |invalid_token|
+  error_prices[invalid_token[:error]]
 end.sum)
+
+autocomplete_prices = {
+  '(' => 1,
+  '[' => 2,
+  '{' => 3,
+  '<' => 4
+}
+
+autocomplete_contest = invalid_tokens.reject { |instruction| instruction[:illegal] }.map do |instruction|
+  instruction[:state].reverse.inject(0) do |acc, closing_token|
+    acc = acc * 5 + autocomplete_prices[closing_token]
+  end
+end
+
+ap autocomplete_contest.sort[autocomplete_contest.size / 2]
