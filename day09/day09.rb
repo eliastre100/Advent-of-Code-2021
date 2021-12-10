@@ -80,7 +80,7 @@ InputReader.read_string(ARGV[0]).each { |row| cave.feed(row) }
 
 low_points = cave.low_points.values
 
-ap low_points.sum +  low_points.size
+ap low_points.sum + low_points.size
 
 bassins = cave.bassins
 
