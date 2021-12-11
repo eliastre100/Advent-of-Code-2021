@@ -11,13 +11,14 @@ end
 instructions = InputReader.read_string(ARGV[0])
 
 class Cavern
-  attr_accessor :flashes
+  attr_accessor :flashes, :current_step
 
   def initialize
     @octopuses = {}
     @height = 0
     @width = 0
     @flashes = 0
+    @current_step = 0
   end
 
   def feed(line)
@@ -29,12 +30,23 @@ class Cavern
   end
 
   def step
+    puts "step #{@current_step + 1}"
     @octopuses.each do |_, octopus|
       octopus[:power] = 0 if octopus[:power] > 9 && octopus[:flashed]
       octopus[:flashed] = false
       octopus[:power] += 1
     end
-    @flashes += flash
+    @current_step += 1
+    flash.tap do |step_flashes|
+      @flashes += step_flashes
+    end
+  end
+
+  def synchronize
+    needed_flashes = @width * @height
+    loop do
+      break if step == needed_flashes
+    end
   end
 
   def to_s
@@ -85,7 +97,7 @@ cavern = Cavern.new
 
 instructions.each { |row| cavern.feed(row.split('').map(&:to_i)) }
 
-  puts cavern
+puts cavern
 (0..99).each do |x|
   puts "Step #{x + 1}"
   cavern.step
@@ -93,3 +105,7 @@ instructions.each { |row| cavern.feed(row.split('').map(&:to_i)) }
 end
 
 puts cavern.flashes
+
+cavern.synchronize
+
+puts cavern.current_step
