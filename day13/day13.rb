@@ -73,12 +73,8 @@ input.each do |row|
     if axis.eql?('x')
       paper.horizontal_fold(position.to_i)
     else
-      puts paper
-      puts "====="
       paper.vertical_fold(position.to_i)
-      puts paper
     end
-    break
   else
     coordinates = row.split(',').map(&:to_i)
     paper.add_dot(coordinates[0], coordinates[1])
@@ -88,3 +84,5 @@ end
 
 puts paper
 puts paper.count_points
+
+PGHRKLKL
