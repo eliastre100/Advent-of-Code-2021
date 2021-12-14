@@ -19,34 +19,56 @@ def positions_of(str, substr, hidden_size = 0, positions = [])
   end
 end
 
-template = input.first.split('')
-rules = input.drop(2).map do |rule|
-  requires, produce = rule.split('->').map(&:strip)
-  [requires, produce]
-end.to_h
+class Polymer
+  attr_accessor :groups_occurrence
 
-10.times do
-  insertions = rules.map do |requires, produce|
-    positions_of(template.join, requires).map do |position|
-      [position, produce]
+  def initialize(definition)
+    @definition = definition
+    @groups_occurrence = {}
+    definition.size.times do |idx|
+      @groups_occurrence[definition[idx] + definition[idx + 1].to_s] = 1 + @groups_occurrence[definition[idx] + definition[idx + 1].to_s].to_i
     end
-  end.reject { |insertion| insertion.empty? }
-                    .flatten(1)
-                    .sort_by { |insertion| insertion[0] }
+  end
 
-  insertions.each.with_index do |insertion, idx|
-    template.insert(insertion[0] + idx + 1, insertion[1])
+  def transform(rules, iterations)
+    occurrences = @groups_occurrence
+    iterations.times do
+      occurrences = occurrences.map do |group, occurrences|
+        if rules[group]
+          rules[group].map { |produce| [produce, occurrences] }
+        else
+          [[group, occurrences]]
+        end
+      end.flatten(1)
+         .group_by { |group| group[0] }
+         .transform_values { |occurences| occurences.sum { |occurrence| occurrence[1] }}
+    end
+    count_token_occurrence(occurrences)
+  end
+
+  def count_token_occurrence(group_occurrences)
+    occurrence_map = group_occurrences.map do |group, occurrences|
+      group.split('').map do |token|
+        [token, occurrences]
+      end
+    end.flatten(1)
+       .group_by { |occurrence_group| occurrence_group[0] }
+       .map { |token, occurrences| [token, occurrences.sum { |occurrence| occurrence[1] }] }
+       .to_h
+
+    occurrence_map[@definition[0]] += 1
+    occurrence_map.transform_values { |value| value / 2 }
   end
 end
 
-occurences =  template.group_by { |value| value }
-                      .transform_values(&:count)
-                      .to_h
-                      .sort_by { |_, occurences| occurences }
+polymer = Polymer.new(input.first)
 
-ap occurences.last[1] - occurences.first[1]
+rules = input.drop(2).map do |rule|
+  requires, produce = rule.split('->').map(&:strip)
+  [requires, [requires[0] + produce, produce + requires[1]]]
+end.to_h
 
-# 0 1 2 3 4 5 6 7 8
-# N B B B C N C C N BBNBNBBCHBHHBCHB
-# NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB
-# NBBNBNBBCCNBCNCCNNBBNBBBNBBNBBBCBHBCBHHNHCBCBHB
+polymer_state = polymer.transform(rules, 40)
+min, max = polymer_state.map { |_, occurrences| occurrences }.minmax
+
+ap max - min
