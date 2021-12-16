@@ -47,10 +47,6 @@ module Type4Packet
 end
 
 module TypeLengthId0Packet
-  def value
-    nil
-  end
-
   def data_start
     3 + 3 + 1 + 15
   end
@@ -81,10 +77,6 @@ module TypeLengthId0Packet
 end
 
 module TypeLengthId1Packet
-  def value
-    nil
-  end
-
   def data_start
     3 + 3 + 1 + 11
   end
@@ -110,7 +102,6 @@ module TypeLengthId1Packet
 
     @sub_packets = []
     read = 0
-    ap payload
     while @sub_packets.size < number_sub_packets
       @sub_packets << Packet.new(@binary[data_start + read..-1], binary: true)
       read += @sub_packets.last.packet_size
@@ -133,7 +124,7 @@ class Packet
                 value.hex.to_s(2).rjust(value.size * 4, '0')
               end
     integrate_packet_specifics
-    puts self
+    #puts self
   end
 
   def to_s
@@ -152,7 +143,6 @@ class Packet
   end
 
   def op_code
-    ap @binary
     @binary[3..5].to_i(2)
   end
 
@@ -161,7 +151,16 @@ class Packet
   end
 
   def value
-    throw NotImplementedError
+    values = sub_packets.map(&:value)
+    {
+      0 => -> { values.sum },
+      1 => -> { values.inject(&:*) },
+      2 => -> { values.min },
+      3 => -> { values.max },
+      5 => -> { values[0] > values[1] ? 1 : 0 },
+      6 => -> { values[0] < values[1] ? 1 : 0 },
+      7 => -> { values[0] == values[1] ? 1 : 0 }
+    }[op_code].call
   end
 
   def version_checksum
@@ -204,4 +203,5 @@ end
 packet = Packet.new(input)
 
 puts packet.version_checksum
+puts packet.value
 #packet.sub_packets.each_with_index { |p, i| ap "#{i} => #{p.send(:payload)} #{p.op_code} #{p.packet_size} #{p.value}" }
