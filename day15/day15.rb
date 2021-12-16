@@ -57,7 +57,7 @@ class Map
       neighbors.each do |neighbor|
         new_risk = @cells[[x, y]][:lowest_risk] + @cells[[neighbor[0], neighbor[1]]][:risk]
         @cells[[neighbor[0], neighbor[1]]][:lowest_risk] = new_risk if new_risk <= @cells[[neighbor[0], neighbor[1]]][:lowest_risk] || (@cells[[neighbor[0], neighbor[1]]][:lowest_risk]).zero?
-        edges << [neighbor[0], neighbor[1]] unless @cells[[neighbor[0], neighbor[1]]][:computed]
+        edges << [neighbor[0], neighbor[1]] unless @cells[[neighbor[0], neighbor[1]]][:computed] # TODO: Use Heap instead of list
       end
 
       @cells[[x, y]][:computed] = true
