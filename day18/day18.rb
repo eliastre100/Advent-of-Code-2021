@@ -47,7 +47,7 @@ class SnailfishNumber
   end
 
   def reduce
-    while explode_child(0) || split; ap to_s; end
+    while explode_child(0) || split; end
   end
 
   def magnitude
@@ -66,13 +66,10 @@ class SnailfishNumber
 
   def explode_child(depth)
     if depth >= 4
-      puts "#{to_s} exploded !"
       return { left: left, right: right, consumed: false }
     elsif left.is_a?(SnailfishNumber) && (explosion = left.send(:explode_child, depth + 1))
-      ap "Applying left remote explosion #{explosion} at #{to_s}"
       return apply_explosion(explosion, :left)
     elsif right.is_a?(SnailfishNumber) && (explosion = right.send(:explode_child, depth + 1))
-      ap "Applying right remote explosion #{explosion} at #{to_s}"
       return apply_explosion(explosion, :right)
     end
 
@@ -80,8 +77,8 @@ class SnailfishNumber
   end
 
   def apply_explosion(explosion, explosion_direction)
-    if explosion_direction == :right
-      # Try apply explosion[:left]
+    case explosion_direction
+    when :right
       if left.is_a?(SnailfishNumber)
         explosion[:left] = 0 if left.send(:apply_from_right, explosion[:left])
       else
@@ -89,8 +86,7 @@ class SnailfishNumber
         @pair[0] += explosion[:left]
         explosion[:left] = 0
       end
-    elsif explosion_direction == :left
-      # Try apply explosion[:right]
+    when :left
       if right.is_a?(SnailfishNumber)
         explosion[:right] = 0 if right.send(:apply_from_left, explosion[:right])
       else
@@ -151,7 +147,6 @@ class SnailfishNumber
     if left.is_a?(SnailfishNumber)
       return true if left.send(:split)
     elsif left >= 10
-      puts "#{to_s} will split"
       @pair[0] = SnailfishNumber.new([(left.to_f / 2).floor.to_i, (left.to_f / 2).ceil.to_i])
       return true
     end
@@ -159,7 +154,6 @@ class SnailfishNumber
     if right.is_a?(SnailfishNumber)
       return true if right.send(:split)
     elsif right >= 10
-      puts "#{to_s} will split"
       @pair[1] = SnailfishNumber.new([(right.to_f / 2).floor.to_i, (right.to_f / 2).ceil.to_i])
       return true
     end
@@ -208,6 +202,8 @@ class SnailfishNumber
   end
 end
 
+# Part 1
+
 n = SnailfishNumber.parse(input.first)
 
 input.drop(1).each do |number_str|
@@ -217,10 +213,18 @@ end
 
 puts n.to_s
 puts n.magnitude
-# n3.send(:explode_child, 0)
-# ap n3.to_s
-# puts "#{n3.to_s.eql?("[[[[0, 7], 4], [7, [[8, 4], 9]]], [1, 1]]")}"
-#
-# n3.send(:explode_child, 0)
-# ap n3.to_s
-# puts n3.to_s.eql?("[[[[0, 7], 4], [15, [0, 13]]], [1, 1]]")
+
+# Part 2
+
+max_magniture = input.combination(2).map do |combination|
+  [
+    [SnailfishNumber.parse(combination[0]), SnailfishNumber.parse(combination[1])],
+    [SnailfishNumber.parse(combination[1]), SnailfishNumber.parse(combination[0])]
+  ]
+end.flatten(1).map do |combination|
+  t = combination[0] + combination[1]
+  t.reduce
+  t.magnitude
+end.max
+
+puts max_magniture
